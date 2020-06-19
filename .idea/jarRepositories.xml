@@ -16,5 +16,10 @@
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="3d8208a1-33fa-4dd8-82e4-8ec045505612" />
+      <option name="name" value="3d8208a1-33fa-4dd8-82e4-8ec045505612" />
+      <option name="url" value="https://github.com/jhy/jsoup.git" />
+    </remote-repository>
   </component>
 </project>

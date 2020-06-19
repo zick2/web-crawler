@@ -1,7 +1,6 @@
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -21,7 +20,7 @@ public class Main {
         try{
             //Fetching and parsing HTMl file ...
             Document doc = Jsoup.connect(start_url).get();
-            //Extracting all <a> tags
+            //Extracting all <a href=""> tags
             Elements links = doc.select("a[href]");
             //For each tag extract the href attribute (it contains the urls we need)
             for(Element url : links){
