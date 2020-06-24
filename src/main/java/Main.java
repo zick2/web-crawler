@@ -8,7 +8,7 @@ public class Main {
          * 3) https://www.miss-thrifty.co.uk
          * */
 
-        String start_url = "https://www.miss-thrifty.co.uk/";
+        String start_url = "http://kauaimark.blogspot.com/";
 
         Spider mySpider = new Spider();
         mySpider.crawl(start_url);
