@@ -37,6 +37,8 @@
 
 ##### Libraries:
 * [jsoup Java HTML Parser, with the best of HTML5 DOM methods and CSS selectors.](https://jsoup.org/)
+* [Jsoup api overview](https://jsoup.org/apidocs/index.html)
+* (https://www.programcreek.com/java-api-examples/index.php?api=org.jsoup.HttpStatusException)
 
 
 ### Other links 

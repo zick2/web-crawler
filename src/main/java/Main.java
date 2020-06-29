@@ -9,9 +9,10 @@ public class Main {
          * */
 
         String start_url = "http://kauaimark.blogspot.com/";
+        String domain = "kauaimark.blogspot.com";
 
         Spider mySpider = new Spider();
-        mySpider.crawl(start_url);
+        mySpider.crawl(start_url, domain);
 
     }
 }
