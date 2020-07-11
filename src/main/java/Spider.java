@@ -31,6 +31,7 @@ public class Spider {
     public int NUM_OF_ERRORS = 0;
     public int TOTAL_NUM_OF_URLS = 0;
     public int NUM_OF_BAD_URLS = 0;
+    public int NUM_OF_REDUNDANT_URLS = 0;
 
     public int i = 0;
 
@@ -47,13 +48,14 @@ public class Spider {
             // Fetching and parsing HTMl ...
             Document doc = Jsoup.connect(url).get();
             Elements links = doc.select("a[href]"); // Extracting all <a href=""> tags
-            System.out.println(doc);
+           // System.out.println(doc);
 
             if (!links.isEmpty()) {
                 crawled_Urls.add(url);// Add current url to crawled list
-                System.out.println((i++) + ": " + url);
+                // Todo:  System.out.println((i++) + ": " + url);
                 preProcess_urls(links, domain);
             } else {
+                NUM_OF_REDUNDANT_URLS++;
                 System.out.println("Empty_url: " + url);
             } // End of if else: !links.isEmpty()
 
@@ -63,16 +65,16 @@ public class Spider {
             System.out.println("Caught Error: " + e);
 
             //---------------------------
-          //  this.crawlNextURL(domain); // Recursion point, if exception occurs
+              this.crawlNextURL(domain); // Recursion point, if exception occurs
         }
 
         //-------------------------
-       // this.crawlNextURL(domain); // Recursion point
+         this.crawlNextURL(domain); // Recursion point
     } // End of crawl()
 
     public void printCrawlStatus() {
-        System.out.println(uncrawled_Urls.size() + " Uncrawled urls, " + crawled_Urls.size() + " Crawled urls");
-        System.out.println("Total urls: " + TOTAL_NUM_OF_URLS + ", Bad urls: " + NUM_OF_BAD_URLS + ", Errors: " + NUM_OF_ERRORS);
+        System.out.println("Uncrawled urls: "+ uncrawled_Urls.size() + "\nCrawled urls: "  + crawled_Urls.size());
+        System.out.println("Total urls: " + TOTAL_NUM_OF_URLS + "\nBad : " + NUM_OF_BAD_URLS+ "\nRedundant: " + NUM_OF_REDUNDANT_URLS + "\nErrors: " + NUM_OF_ERRORS);
     }
 
 
@@ -94,19 +96,20 @@ public class Spider {
             if (l.contains(domain) && l.contains("http")) {
                 // TODO - ADD MORE PREPROCESSING CODE HERE ...
 
-                // If url does not exist in uncrawled_url and crawled list ...
                 if (!uncrawled_Urls.contains(l) && !crawled_Urls.contains(l)) {
-                    uncrawled_Urls.add(l);//Then add it to unCrawled_url list
-                }// BUT if url exists in uncrawled_url list ...
-                else if (uncrawled_Urls.contains(l)) {
-                    uncrawled_Urls.remove(l);  // Then remove it
-                }
-
-                // TODO - ADD MORE PREPROCESSING CODE HERE ...
+                    System.out.println(i++ +": Good -> "+l);
+                    uncrawled_Urls.add(l);
+                } else  {
+                    NUM_OF_REDUNDANT_URLS++;
+                   //uncrawled_Urls.remove(l);
+                    System.out.println(i++ +": Redundant -> "+l);
+               }
             } else {
                 NUM_OF_BAD_URLS++;
-                System.out.println("Out_of_Domain: " + l);
+                System.out.println(i++ +": Bad -> "+l);
+                // Todo: System.out.println("Out_of_Domain: " + l);
             }
+
         }//for Each loop END
     }
 
@@ -115,33 +118,38 @@ public class Spider {
      * crawlNextUrl()
      */
     public void crawlNextURL(String domain) {
+        int index =0;
         //If uncrawled list is not empty ...
         if (!uncrawled_Urls.isEmpty()) {
-            // Then generate random index (0 - list size)
-            int randomIndex = (int) (Math.random() * uncrawled_Urls.size());
-            // Then use random index to select element or url from list
-            String new_url = uncrawled_Urls.get(randomIndex);
-            uncrawled_Urls.remove(randomIndex); // After getting the url, remove it from the list
-
+            String new_url = uncrawled_Urls.get(index);
+            uncrawled_Urls.remove(index); // After getting the url, remove it from the list
             //-----------------------------------------------
             this.crawl(new_url, domain);  // Begin recursion
 
         } else {
             System.out.println("Spider has terminated!!");
             this.printCrawlStatus();
-            // TERMINATE = true;
         }
     }
 
     /**
      * Debug Scrapping Mode
-     * */
+     */
 
-    public void debugMode(String url){
+    public void debugMode(String url) {
         try {
             Document doc = Jsoup.connect(url).get();
             System.out.print(doc);
-        } catch (Exception e){
+            Elements links = doc.select("a[href]");
+            System.out.println( "Size: "+links.size());
+            for (Element link : links) {
+                TOTAL_NUM_OF_URLS++;
+                // Extract the absolute href attribute (it contains the url we need) ...
+                String l = link.attr("abs:href");
+                System.out.println("Link: "+l);
+            }
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

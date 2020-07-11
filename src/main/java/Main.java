@@ -9,12 +9,12 @@ public class Main {
          *  https://www.miss-thrifty.co.uk
          * */
 
-        String start_url = "https://www.tesla.com/";
-        String domain = "tesla.com";
+        String start_url = "https://www.piboco.com/";
+        String domain = "piboco.com";
 
         Spider mySpider = new Spider();
-      //  mySpider.crawl(start_url, domain);
-        mySpider.debugMode(start_url);
+        mySpider.crawl(start_url, domain);
+       // mySpider.debugMode(start_url);
 
     }
 }
