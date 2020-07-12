@@ -6,6 +6,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Spider {
     //TODO :
@@ -40,20 +41,24 @@ public class Spider {
     }
 
     /**
-     * -----------
-     * crawl()
+     * crawl():
+     *   urls: []
+     *  - domains: []
+     *  - crawlWithinDomains: true
      */
-    public void crawl(String url, String domain) {
+    public void crawl(String[] urls, String[] domains, boolean crawlWithinDomains) {
+        String url = urls[0];
+        if (urls.length > 1) {
+            uncrawled_Urls.addAll(Arrays.asList(urls).subList(1, urls.length-1));
+        }
         try {
-            // Fetching and parsing HTMl ...
+            //Fetching and parsing HTMl ...
             Document doc = Jsoup.connect(url).get();
-            Elements links = doc.select("a[href]"); // Extracting all <a href=""> tags
-           // System.out.println(doc);
+            Elements pageLinks = doc.select("a[href]"); // Extracting all <a href=""> tags
 
-            if (!links.isEmpty()) {
+            if (!pageLinks.isEmpty()) {
                 crawled_Urls.add(url);// Add current url to crawled list
-                // Todo:  System.out.println((i++) + ": " + url);
-                preProcess_urls(links, domain);
+                preProcess_urls(pageLinks, domains, crawlWithinDomains);
             } else {
                 NUM_OF_REDUNDANT_URLS++;
                 System.out.println("Empty_url: " + url);
@@ -63,68 +68,84 @@ public class Spider {
             NUM_OF_ERRORS++;
             //Handle all Exceptions here ...
             System.out.println("Caught Error: " + e);
-
             //---------------------------
-              this.crawlNextURL(domain); // Recursion point, if exception occurs
+            this.crawlNextURL(domains, crawlWithinDomains); // Recursion point, if exception occurs
         }
-
         //-------------------------
-         this.crawlNextURL(domain); // Recursion point
+        this.crawlNextURL(domains, crawlWithinDomains); // Recursion point
     } // End of crawl()
 
-    public void printCrawlStatus() {
-        System.out.println("Uncrawled urls: "+ uncrawled_Urls.size() + "\nCrawled urls: "  + crawled_Urls.size());
-        System.out.println("Total urls: " + TOTAL_NUM_OF_URLS + "\nBad : " + NUM_OF_BAD_URLS+ "\nRedundant: " + NUM_OF_REDUNDANT_URLS + "\nErrors: " + NUM_OF_ERRORS);
+    public  void printCrawlStatus() {
+        System.out.println("Uncrawled urls: " + uncrawled_Urls.size() + "\nCrawled urls: " + crawled_Urls.size());
+        System.out.println("Total urls: " + TOTAL_NUM_OF_URLS + "\nBad : " + NUM_OF_BAD_URLS + "\nRedundant: " + NUM_OF_REDUNDANT_URLS + "\nErrors: " + NUM_OF_ERRORS);
     }
 
 
     /**
-     * -------------------------------------------------------------------------------------------
      * Preprocess Urls
-     * - url contains domain name e.g example.com, continue preprocessing
+     * - url contains domain name e.g example.com,
      * - url does not exist in uncrawled_url and crawled_url list, add it to the uncrawled list
-     * - Remove it from the uncrawled list, if it exists
      ***/
 
-    public void preProcess_urls(Elements links, String domain) {
-        //- For each element OR <a href=""> tag ...
-        for (Element link : links) {
+    public void preProcess_urls(Elements pgLinks, String[] domains, boolean crawlWithinDomains) {
+        for (Element pgLink : pgLinks) {
             TOTAL_NUM_OF_URLS++;
             // Extract the absolute href attribute (it contains the url we need) ...
-            String l = link.attr("abs:href");
+            String l = pgLink.attr("abs:href");
 
-            if (l.contains(domain) && l.contains("http")) {
-                // TODO - ADD MORE PREPROCESSING CODE HERE ...
+            if (crawlWithinDomains) {
+                for (String domain : domains) {
+                    if (l.contains(domain) && l.contains("http")) {
+                        // TODO - ADD MORE PREPROCESSING CODE HERE ...
 
-                if (!uncrawled_Urls.contains(l) && !crawled_Urls.contains(l)) {
-                    System.out.println(i++ +": Good -> "+l);
-                    uncrawled_Urls.add(l);
-                } else  {
-                    NUM_OF_REDUNDANT_URLS++;
-                   //uncrawled_Urls.remove(l);
-                    System.out.println(i++ +": Redundant -> "+l);
-               }
+                        if (!uncrawled_Urls.contains(l) && !crawled_Urls.contains(l)) {
+                            System.out.println(i++ + ": Good -> " + l);
+                            uncrawled_Urls.add(l);
+                        } else {
+                            NUM_OF_REDUNDANT_URLS++;
+                            //uncrawled_Urls.remove(l);
+                            System.out.println(i++ + ": Redundant -> " + l);
+                        }
+                    } else {
+                        NUM_OF_BAD_URLS++;
+                        System.out.println(i++ + ": Bad -> " + l);
+                        // Todo: System.out.println("Out_of_Domain: " + l);
+                    }
+                }
             } else {
-                NUM_OF_BAD_URLS++;
-                System.out.println(i++ +": Bad -> "+l);
-                // Todo: System.out.println("Out_of_Domain: " + l);
+                if (l.contains("http")) {
+                    // TODO - ADD MORE PREPROCESSING CODE HERE ...
+
+                    if (!uncrawled_Urls.contains(l) && !crawled_Urls.contains(l)) {
+                        System.out.println(i++ + ": Good -> " + l);
+                        uncrawled_Urls.add(l);
+                    } else {
+                        NUM_OF_REDUNDANT_URLS++;
+                        //uncrawled_Urls.remove(l);
+                        System.out.println(i++ + ": Redundant -> " + l);
+                    }
+                } else {
+                    NUM_OF_BAD_URLS++;
+                    System.out.println(i++ + ": Bad -> " + l);
+                    // Todo: System.out.println("Out_of_Domain: " + l);
+                }
             }
 
         }//for Each loop END
     }
 
     /**
-     * ----------------------------------------------------------------
-     * crawlNextUrl()
+     * crawlNextUrl(): - Selects next url in line from the uncrawled list to be crawled
      */
-    public void crawlNextURL(String domain) {
-        int index =0;
+    public void crawlNextURL(String[] domains, boolean crawlWithinDomains) {
+        String[] new_url = new String[1];
+        int index = 0;
         //If uncrawled list is not empty ...
         if (!uncrawled_Urls.isEmpty()) {
-            String new_url = uncrawled_Urls.get(index);
-            uncrawled_Urls.remove(index); // After getting the url, remove it from the list
+            new_url[0] = uncrawled_Urls.get(index);
+            uncrawled_Urls.remove(index);
             //-----------------------------------------------
-            this.crawl(new_url, domain);  // Begin recursion
+            this.crawl(new_url, domains, crawlWithinDomains);  // Begin recursion
 
         } else {
             System.out.println("Spider has terminated!!");
@@ -133,7 +154,36 @@ public class Spider {
     }
 
     /**
-     * Debug Scrapping Mode
+     * extractDomains():
+     */
+
+    public String[] extractDomains(String[] urls) {
+        String[] domains = new String[urls.length];
+        int count = 0;
+        for (String url : urls) {
+            int index = url.indexOf("://") + 3;
+            int len = url.length();
+            StringBuilder domain = new StringBuilder();
+
+            while (index != len) {
+                if (url.charAt(index) != '/') {
+                    domain.append(url.charAt(index));
+                    index++;
+                } else {
+                    index = len;
+                }
+            }
+            //  System.out.println(domain);
+            domains[count] = domain.toString();
+            count++;
+        }
+        // System.out.println(domains.length);
+
+        return domains;
+    }
+
+    /**
+     * debugMode():
      */
 
     public void debugMode(String url) {
@@ -141,12 +191,12 @@ public class Spider {
             Document doc = Jsoup.connect(url).get();
             System.out.print(doc);
             Elements links = doc.select("a[href]");
-            System.out.println( "Size: "+links.size());
+            System.out.println("Size: " + links.size());
             for (Element link : links) {
                 TOTAL_NUM_OF_URLS++;
                 // Extract the absolute href attribute (it contains the url we need) ...
                 String l = link.attr("abs:href");
-                System.out.println("Link: "+l);
+                System.out.println("Link: " + l);
             }
 
         } catch (Exception e) {
