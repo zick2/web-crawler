@@ -38,8 +38,15 @@
 ##### Libraries:
 * [jsoup Java HTML Parser, with the best of HTML5 DOM methods and CSS selectors.](https://jsoup.org/)
 * [Jsoup api overview](https://jsoup.org/apidocs/index.html)
-* (https://www.programcreek.com/java-api-examples/index.php?api=org.jsoup.HttpStatusException)
+* [](https://stackabuse.com/reading-and-writing-csvs-in-java-with-opencsv/)
+//----------------------------------------
+* [OpenCSV](https://stackabuse.com/reading-and-writing-csvs-in-java-with-opencsv/)
 
+//---------------------
+* [Page content is loaded with JavaScript and Jsoup doesn't see it (Stack overflow)](https://stackoverflow.com/questions/7488872/page-content-is-loaded-with-javascript-and-jsoup-doesnt-see-it)
+* [Parsing JavaScript Generated Page with Jsoup and HtmUnit](https://riptutorial.com/jsoup/example/16274/parsing-javascript-generated-page-with-jsoup-and-htmunit)
+* [HtmlUnit library](https://htmlunit.sourceforge.io/gettingStarted.html)
+* [HtmlUnit vs JSoup](https://dzone.com/articles/htmlunit-vs-jsoup-html-parsing)
 
 ### Other links 
 
@@ -47,3 +54,14 @@
 * [Getting Started](https://www.markdownguide.org/getting-started/)
 * [Editor.md - Open source online Markdown editor.](https://pandao.github.io/editor.md/en.html)  [This is an online editor for .md file codes, also includes some documentations ]     
 * [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
+
+//----------------------------------------------
+* [UserAgent Jsoup](https://stackoverflow.com/questions/6581655/jsoup-useragent-how-to-set-it-right)
+
+
+* [WebClient Class Microsoft C#](https://docs.microsoft.com/en-us/dotnet/api/system.net.webclient?view=netcore-3.1)
+* [Spring WebClient – GET, PUT, POST, DELETE examples](https://howtodoinjava.com/spring-webflux/webclient-get-post-example/)
+* [Spring 5 WebClient](https://springframework.guru/spring-5-webclient/)
+
+//---------------------------------------------
+* [Setting up libraries - Intellij](https://www.jetbrains.com/help/idea/library.html)

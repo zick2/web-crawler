@@ -13,5 +13,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="jsoup-1.13.1" level="project" />
+    <orderEntry type="library" name="net.sourceforge.htmlunit:htmlunit:2.37.0" level="project" />
+    <orderEntry type="library" name="com.opencsv:opencsv:5.1" level="project" />
   </component>
 </module>

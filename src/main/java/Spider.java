@@ -1,10 +1,17 @@
-import com.sun.xml.internal.ws.handler.HandlerException;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+
+import com.opencsv.CSVWriter;
+
+import java.io.*;
+
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.jsoup.Connection.Response;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -34,22 +41,28 @@ public class Spider {
     public int NUM_OF_BAD_URLS = 0;
     public int NUM_OF_REDUNDANT_URLS = 0;
 
+    public String[] entryData;
+    public String filename;
+    public CSVWriter writer;
+
     public int i = 0;
 
-    public Spider() {
+    public Spider() throws IOException {
+        filename = "src/main/resources/urldata.csv";
+        writer = new CSVWriter(new FileWriter(filename));
         System.out.println("Initializing spider ...");
     }
 
     /**
      * crawl():
-     *   urls: []
-     *  - domains: []
-     *  - crawlWithinDomains: true
+     * urls: []
+     * - domains: []
+     * - crawlWithinDomains: true
      */
-    public void crawl(String[] urls, String[] domains, boolean crawlWithinDomains) {
+    public void crawl(String[] urls, String[] domains, boolean crawlWithinDomains) throws IOException {
         String url = urls[0];
         if (urls.length > 1) {
-            uncrawled_Urls.addAll(Arrays.asList(urls).subList(1, urls.length-1));
+            uncrawled_Urls.addAll(Arrays.asList(urls).subList(1, urls.length - 1));
         }
         try {
             //Fetching and parsing HTMl ...
@@ -58,6 +71,7 @@ public class Spider {
 
             if (!pageLinks.isEmpty()) {
                 crawled_Urls.add(url);// Add current url to crawled list
+                saveURL(url);
                 preProcess_urls(pageLinks, domains, crawlWithinDomains);
             } else {
                 NUM_OF_REDUNDANT_URLS++;
@@ -75,7 +89,7 @@ public class Spider {
         this.crawlNextURL(domains, crawlWithinDomains); // Recursion point
     } // End of crawl()
 
-    public  void printCrawlStatus() {
+    public void printCrawlStatus() {
         System.out.println("Uncrawled urls: " + uncrawled_Urls.size() + "\nCrawled urls: " + crawled_Urls.size());
         System.out.println("Total urls: " + TOTAL_NUM_OF_URLS + "\nBad : " + NUM_OF_BAD_URLS + "\nRedundant: " + NUM_OF_REDUNDANT_URLS + "\nErrors: " + NUM_OF_ERRORS);
     }
@@ -137,7 +151,7 @@ public class Spider {
     /**
      * crawlNextUrl(): - Selects next url in line from the uncrawled list to be crawled
      */
-    public void crawlNextURL(String[] domains, boolean crawlWithinDomains) {
+    public void crawlNextURL(String[] domains, boolean crawlWithinDomains) throws IOException {
         String[] new_url = new String[1];
         int index = 0;
         //If uncrawled list is not empty ...
@@ -150,6 +164,7 @@ public class Spider {
         } else {
             System.out.println("Spider has terminated!!");
             this.printCrawlStatus();
+            writer.close();
         }
     }
 
@@ -161,6 +176,7 @@ public class Spider {
         String[] domains = new String[urls.length];
         int count = 0;
         for (String url : urls) {
+//            https://www.piboco.com/
             int index = url.indexOf("://") + 3;
             int len = url.length();
             StringBuilder domain = new StringBuilder();
@@ -182,22 +198,63 @@ public class Spider {
         return domains;
     }
 
+
+    /**
+     * saveURL():
+     * */
+    public void saveURL(String entry_data) {
+        entryData = new String[]{entry_data};
+        writer.writeNext(entryData);
+    }
+
     /**
      * debugMode():
      */
-
     public void debugMode(String url) {
         try {
-            Document doc = Jsoup.connect(url).get();
-            System.out.print(doc);
-            Elements links = doc.select("a[href]");
+
+
+            WebClient webClient = new WebClient();
+            HtmlPage htmlPage = webClient.getPage(url);
+            Document page = Jsoup.parse(htmlPage.asXml());
+            System.out.println(page);
+
+            Elements links = page.select("a[href]");
             System.out.println("Size: " + links.size());
+
             for (Element link : links) {
                 TOTAL_NUM_OF_URLS++;
                 // Extract the absolute href attribute (it contains the url we need) ...
-                String l = link.attr("abs:href");
+                String l = link.attr("abs::href");
                 System.out.println("Link: " + l);
             }
+
+
+            //------------------------------------------------
+
+//            Response response = Jsoup.connect(url)
+//                    .ignoreContentType(true)
+//                    .timeout(12000)
+//                    .followRedirects(true)
+//                    .referrer("http://www.google.com")
+//                    .userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
+//                    .execute();
+
+
+//            Document doc = response.parse();
+//            System.out.println(doc);
+//            System.out.println(response.statusCode());
+
+
+//            Elements links = doc.select("a[href]");
+//            System.out.println("Size: " + links.size());
+//
+//            for (Element link : links) {
+//                TOTAL_NUM_OF_URLS++;
+//                // Extract the absolute href attribute (it contains the url we need) ...
+//                String l = link.attr("abs:href");
+//                System.out.println("Link: " + l);
+//            }
 
         } catch (Exception e) {
             e.printStackTrace();
