@@ -1,3 +1,4 @@
+import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
@@ -14,6 +15,7 @@ import org.jsoup.Connection.Response;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Spider {
     //TODO :
@@ -41,16 +43,24 @@ public class Spider {
     public int NUM_OF_BAD_URLS = 0;
     public int NUM_OF_REDUNDANT_URLS = 0;
 
-    public String[] entryData;
+    public WebClient client;
     public String filename;
-    public CSVWriter writer;
-
+    public BufferedWriter fwriter;
     public int i = 0;
 
     public Spider() throws IOException {
-        filename = "src/main/resources/urldata.csv";
-        writer = new CSVWriter(new FileWriter(filename));
         System.out.println("Initializing spider ...");
+        filename = "src/main/resources/urldata.csv";
+        fwriter =new BufferedWriter(new FileWriter(filename));
+
+        /* turn off annoying htmlunit warnings */
+        java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF);
+
+        client = new WebClient(BrowserVersion.FIREFOX_68);
+        client.getOptions().setJavaScriptEnabled(true);
+        client.getOptions().setThrowExceptionOnScriptError(false);
+        client.getOptions().setCssEnabled(false);
+        client.getOptions().setTimeout(50000);
     }
 
     /**
@@ -66,13 +76,15 @@ public class Spider {
         }
         try {
             //Fetching and parsing HTMl ...
-            Document doc = Jsoup.connect(url).get();
+            HtmlPage htmlDoc = client.getPage(url);
+            Document doc = Jsoup.parse(htmlDoc.asXml(), url);
+           // Document doc = Jsoup.connect(url).get();
             Elements pageLinks = doc.select("a[href]"); // Extracting all <a href=""> tags
 
+            saveUrl(url);
+
             if (!pageLinks.isEmpty()) {
-                crawled_Urls.add(url);// Add current url to crawled list
-                saveURL(url);
-                preProcess_urls(pageLinks, domains, crawlWithinDomains);
+               preProcess_urls(pageLinks, domains, crawlWithinDomains);
             } else {
                 NUM_OF_REDUNDANT_URLS++;
                 System.out.println("Empty_url: " + url);
@@ -83,28 +95,32 @@ public class Spider {
             //Handle all Exceptions here ...
             System.out.println("Caught Error: " + e);
             //---------------------------
-            this.crawlNextURL(domains, crawlWithinDomains); // Recursion point, if exception occurs
+           // this.crawlNextURL(domains, crawlWithinDomains); // Recursion point, if exception occurs
         }
+
         //-------------------------
-        this.crawlNextURL(domains, crawlWithinDomains); // Recursion point
+        this.crawlNextURL(domains, crawlWithinDomains); // Recursion point;
     } // End of crawl()
+
+    public void closeRes() throws IOException {
+        fwriter.close();
+        client.close();
+    }
 
     public void printCrawlStatus() {
         System.out.println("Uncrawled urls: " + uncrawled_Urls.size() + "\nCrawled urls: " + crawled_Urls.size());
         System.out.println("Total urls: " + TOTAL_NUM_OF_URLS + "\nBad : " + NUM_OF_BAD_URLS + "\nRedundant: " + NUM_OF_REDUNDANT_URLS + "\nErrors: " + NUM_OF_ERRORS);
     }
 
-
     /**
      * Preprocess Urls
      * - url contains domain name e.g example.com,
      * - url does not exist in uncrawled_url and crawled_url list, add it to the uncrawled list
      ***/
-
     public void preProcess_urls(Elements pgLinks, String[] domains, boolean crawlWithinDomains) {
         for (Element pgLink : pgLinks) {
             TOTAL_NUM_OF_URLS++;
-            // Extract the absolute href attribute (it contains the url we need) ...
+            // Extract the absolute href attribute ...
             String l = pgLink.attr("abs:href");
 
             if (crawlWithinDomains) {
@@ -117,13 +133,11 @@ public class Spider {
                             uncrawled_Urls.add(l);
                         } else {
                             NUM_OF_REDUNDANT_URLS++;
-                            //uncrawled_Urls.remove(l);
                             System.out.println(i++ + ": Redundant -> " + l);
                         }
                     } else {
                         NUM_OF_BAD_URLS++;
                         System.out.println(i++ + ": Bad -> " + l);
-                        // Todo: System.out.println("Out_of_Domain: " + l);
                     }
                 }
             } else {
@@ -135,7 +149,6 @@ public class Spider {
                         uncrawled_Urls.add(l);
                     } else {
                         NUM_OF_REDUNDANT_URLS++;
-                        //uncrawled_Urls.remove(l);
                         System.out.println(i++ + ": Redundant -> " + l);
                     }
                 } else {
@@ -164,14 +177,14 @@ public class Spider {
         } else {
             System.out.println("Spider has terminated!!");
             this.printCrawlStatus();
-            writer.close();
+
         }
+
     }
 
     /**
      * extractDomains():
      */
-
     public String[] extractDomains(String[] urls) {
         String[] domains = new String[urls.length];
         int count = 0;
@@ -198,13 +211,27 @@ public class Spider {
         return domains;
     }
 
+    public void saveUrl(String url) throws IOException {
+            crawled_Urls.add(url);
+            this.saveUrlToCSV(url);
+    }
 
     /**
-     * saveURL():
+     * saveUrlToCSV():
      * */
-    public void saveURL(String entry_data) {
-        entryData = new String[]{entry_data};
-        writer.writeNext(entryData);
+    public void saveUrlToCSV(final String entry_data) throws IOException {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    fwriter.append(entry_data);
+                    fwriter.newLine();
+                    fwriter.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
     }
 
     /**
@@ -213,22 +240,28 @@ public class Spider {
     public void debugMode(String url) {
         try {
 
-
             WebClient webClient = new WebClient();
+            webClient.getOptions().setJavaScriptEnabled(true);
             HtmlPage htmlPage = webClient.getPage(url);
-            Document page = Jsoup.parse(htmlPage.asXml());
-            System.out.println(page);
 
+            String pageXml = htmlPage.asXml();
+            Document page = Jsoup.parse(pageXml, url);
+
+            System.out.println(pageXml);
             Elements links = page.select("a[href]");
             System.out.println("Size: " + links.size());
 
-            for (Element link : links) {
-                TOTAL_NUM_OF_URLS++;
-                // Extract the absolute href attribute (it contains the url we need) ...
-                String l = link.attr("abs::href");
-                System.out.println("Link: " + l);
+            int n = 0;
+            while (n != 8000){
+                for (Element link : links) {
+                    TOTAL_NUM_OF_URLS++;
+                    // Extract the absolute href attribute (it contains the url we need) ...
+                    String l = link.attr("abs:href");
+                 //   saveUrlToCSV(l);
+                    System.out.println(n+":: Link: " + l);
+                }
+              n++;
             }
-
 
             //------------------------------------------------
 
@@ -240,15 +273,13 @@ public class Spider {
 //                    .userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
 //                    .execute();
 
-
 //            Document doc = response.parse();
 //            System.out.println(doc);
 //            System.out.println(response.statusCode());
 
-
 //            Elements links = doc.select("a[href]");
 //            System.out.println("Size: " + links.size());
-//
+
 //            for (Element link : links) {
 //                TOTAL_NUM_OF_URLS++;
 //                // Extract the absolute href attribute (it contains the url we need) ...
