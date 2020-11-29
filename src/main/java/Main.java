@@ -16,7 +16,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-
+        //AppGUI appUI =
 
 
         String[] urls = {"https://asoftmurmur.com/",
@@ -25,11 +25,11 @@ public class Main {
 
         String[] start_url= {"https://asoftmurmur.com/"};
 
-        Spider mySpider = new Spider();
-        mySpider.crawl(start_url, mySpider.extractDomains(start_url), true);
-
+      //  Spider mySpider = new Spider();
+       // mySpider.crawl(start_url, mySpider.extractDomains(start_url), true);
+        new AppGUI();
       //  mySpider.debugMode("http://sadiqweb.epizy.com");
-        mySpider.closeRes();
+        // mySpider.closeRes();
     }
 
 }

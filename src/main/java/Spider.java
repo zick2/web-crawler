@@ -4,6 +4,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import com.opencsv.CSVWriter;
 
+import java.awt.*;
 import java.io.*;
 
 
@@ -13,6 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.Connection.Response;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,11 +49,14 @@ public class Spider {
     public String filename;
     public BufferedWriter fwriter;
     public int i = 0;
+    public int UI_url_num = 1;
+    private JPanel panel;
 
-    public Spider() throws IOException {
+    public Spider(JPanel panel) throws IOException {
+        this.panel = panel;
         System.out.println("Initializing spider ...");
         filename = "src/main/resources/urldata.csv";
-        fwriter =new BufferedWriter(new FileWriter(filename));
+        fwriter = new BufferedWriter(new FileWriter(filename));
 
         /* turn off annoying htmlunit warnings */
         java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF);
@@ -78,28 +83,25 @@ public class Spider {
             //Fetching and parsing HTMl ...
             HtmlPage htmlDoc = client.getPage(url);
             Document doc = Jsoup.parse(htmlDoc.asXml(), url);
-           // Document doc = Jsoup.connect(url).get();
+            // Document doc = Jsoup.connect(url).get();
             Elements pageLinks = doc.select("a[href]"); // Extracting all <a href=""> tags
 
-            saveUrl(url);
-
             if (!pageLinks.isEmpty()) {
-               preProcess_urls(pageLinks, domains, crawlWithinDomains);
+                preProcess_urls(pageLinks, domains, crawlWithinDomains);
             } else {
                 NUM_OF_REDUNDANT_URLS++;
                 System.out.println("Empty_url: " + url);
-            } // End of if else: !links.isEmpty()
-
+            }
+            saveUrl(url);
         } catch (Exception e) {
             NUM_OF_ERRORS++;
             //Handle all Exceptions here ...
             System.out.println("Caught Error: " + e);
             //---------------------------
-           // this.crawlNextURL(domains, crawlWithinDomains); // Recursion point, if exception occurs
+            // this.crawlNextURL(domains, crawlWithinDomains);
         }
-
         //-------------------------
-        this.crawlNextURL(domains, crawlWithinDomains); // Recursion point;
+        this.crawlNextURL(domains, crawlWithinDomains);
     } // End of crawl()
 
     public void closeRes() throws IOException {
@@ -127,7 +129,6 @@ public class Spider {
                 for (String domain : domains) {
                     if (l.contains(domain) && l.contains("http")) {
                         // TODO - ADD MORE PREPROCESSING CODE HERE ...
-
                         if (!uncrawled_Urls.contains(l) && !crawled_Urls.contains(l)) {
                             System.out.println(i++ + ": Good -> " + l);
                             uncrawled_Urls.add(l);
@@ -173,13 +174,10 @@ public class Spider {
             uncrawled_Urls.remove(index);
             //-----------------------------------------------
             this.crawl(new_url, domains, crawlWithinDomains);  // Begin recursion
-
         } else {
             System.out.println("Spider has terminated!!");
             this.printCrawlStatus();
-
         }
-
     }
 
     /**
@@ -212,13 +210,16 @@ public class Spider {
     }
 
     public void saveUrl(String url) throws IOException {
+        if (!crawled_Urls.contains(url)) {
+            this.addToURLPanel(url);
             crawled_Urls.add(url);
             this.saveUrlToCSV(url);
+        }
     }
 
     /**
      * saveUrlToCSV():
-     * */
+     */
     public void saveUrlToCSV(final String entry_data) throws IOException {
         new Thread(new Runnable() {
             public void run() {
@@ -229,9 +230,19 @@ public class Spider {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
         }).start();
+    }
+
+    /**
+     * Adding urls to the GUI URLPanel
+     */
+    public void addToURLPanel(String url) {
+        this.panel.updateUI();
+        JLabel label = new JLabel(UI_url_num +")    " +url);
+         label.setForeground(Color.white);
+        this.panel.add(label);
+        UI_url_num++;
     }
 
     /**
@@ -239,7 +250,6 @@ public class Spider {
      */
     public void debugMode(String url) {
         try {
-
             WebClient webClient = new WebClient();
             webClient.getOptions().setJavaScriptEnabled(true);
             HtmlPage htmlPage = webClient.getPage(url);
@@ -252,15 +262,15 @@ public class Spider {
             System.out.println("Size: " + links.size());
 
             int n = 0;
-            while (n != 8000){
+            while (n != 8000) {
                 for (Element link : links) {
                     TOTAL_NUM_OF_URLS++;
                     // Extract the absolute href attribute (it contains the url we need) ...
                     String l = link.attr("abs:href");
-                 //   saveUrlToCSV(l);
-                    System.out.println(n+":: Link: " + l);
+                    //   saveUrlToCSV(l);
+                    System.out.println(n + ":: Link: " + l);
                 }
-              n++;
+                n++;
             }
 
             //------------------------------------------------

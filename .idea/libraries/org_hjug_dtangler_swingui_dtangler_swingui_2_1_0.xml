@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="org.hjug.dtangler.swingui:dtangler-swingui:2.1.0" type="repository">
+    <properties maven-id="org.hjug.dtangler.swingui:dtangler-swingui:2.1.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/hjug/dtangler/swingui/dtangler-swingui/2.1.0/dtangler-swingui-2.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/hjug/dtangler/core/dtangler-core/2.1.0/dtangler-core-2.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/hjug/dtangler/domain/dtangler-domain/2.1.0/dtangler-domain-2.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/hjug/dtangler/ui/dtangler-ui/2.1.0/dtangler-ui-2.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/jgoodies/jgoodiesforms/1.5.1/jgoodiesforms-1.5.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/jgoodies/jgoodies-common/1.7.0/jgoodies-common-1.7.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
