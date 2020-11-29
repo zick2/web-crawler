@@ -50,9 +50,9 @@ public class Spider {
     public BufferedWriter fwriter;
     public int i = 0;
     public int UI_url_num = 1;
-    private JPanel panel;
+    private JTextArea panel;
 
-    public Spider(JPanel panel) throws IOException {
+    public Spider(JTextArea panel) throws IOException {
         this.panel = panel;
         System.out.println("Initializing spider ...");
         filename = "src/main/resources/urldata.csv";
@@ -238,17 +238,18 @@ public class Spider {
      * Adding urls to the GUI URLPanel
      */
     public void addToURLPanel(String url) {
-        this.panel.updateUI();
-        JLabel label = new JLabel(UI_url_num +")    " +url);
-         label.setForeground(Color.white);
-        this.panel.add(label);
+
+        String txt = UI_url_num +")    " +url+"\n";
+        // label.setForeground(Color.white);
+        this.panel.append(txt);
+      //  this.panel.updateUI();
         UI_url_num++;
     }
 
     /**
      * debugMode():
      */
-    public void debugMode(String url) {
+    public void debugMode(String url, boolean scrapeCode) {
         try {
             WebClient webClient = new WebClient();
             webClient.getOptions().setJavaScriptEnabled(true);
@@ -257,21 +258,20 @@ public class Spider {
             String pageXml = htmlPage.asXml();
             Document page = Jsoup.parse(pageXml, url);
 
-            System.out.println(pageXml);
-            Elements links = page.select("a[href]");
-            System.out.println("Size: " + links.size());
+           // System.out.println(pageXml);
+            //String pag = page.body().text();
 
-            int n = 0;
-            while (n != 8000) {
-                for (Element link : links) {
-                    TOTAL_NUM_OF_URLS++;
-                    // Extract the absolute href attribute (it contains the url we need) ...
-                    String l = link.attr("abs:href");
-                    //   saveUrlToCSV(l);
-                    System.out.println(n + ":: Link: " + l);
-                }
-                n++;
+            if(scrapeCode){
+                String pag = pageXml;
+                this.addToURLPanel(pag);
+            } else {
+                String pag = page.body().text();
+                this.addToURLPanel(pag);
             }
+
+//            Elements links = page.select("a[href]");
+//            System.out.println("Size: " + links.size());
+
 
             //------------------------------------------------
 

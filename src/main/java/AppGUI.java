@@ -11,8 +11,10 @@ public class AppGUI {
     private JFrame frame;
     private JPanel panel;
     private JButton b1;
+    private JButton b2;
+    private JButton b3;
     private Color color1;
-    private JPanel URLPanel;
+    private JTextArea URLPanel;
     private JLabel tLabel;
     private Spider spider;
     private String[] start_url;
@@ -22,11 +24,15 @@ public class AppGUI {
     public AppGUI() throws IOException {
         frame = new JFrame();
         panel = new JPanel();
-        URLPanel = new JPanel();
+        URLPanel = new JTextArea(20,2);
         textBox = new JTextArea();
+
         b1 = new JButton("Start Crawler");
-        tLabel = new JLabel("Crawled URL:");
-        tLabel.setBounds(10, 60, 200, 40);
+        b2 = new JButton("Scrape page content");
+        b3 = new JButton("Scrape page code");
+
+        tLabel = new JLabel("Output panel(The output panel cannot scroll at the moment):");
+        tLabel.setBounds(10, 110, 500, 40);
         tLabel.setForeground(Color.darkGray);
 
 
@@ -56,15 +62,60 @@ public class AppGUI {
             };
         });
 
+        b2.setBounds(550,50, 200, 30);
+        b2.setVerticalTextPosition(AbstractButton.CENTER);
+        b2.setHorizontalTextPosition(AbstractButton.CENTER);
+        b2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //Start crawler  ...
+                SwingWorker sw2 = new SwingWorker() {
+
+                    protected Object doInBackground()  throws Exception{
+                        try {
+                            String str = textBox.getText();
+                            spider.debugMode(str, false);
+                        } catch (Exception e){}
+                        return null;
+                    }
+                };
+                sw2.execute();
+            };
+        });
+
+        b3.setBounds(550,100, 200, 30);
+        b3.setVerticalTextPosition(AbstractButton.CENTER);
+        b3.setHorizontalTextPosition(AbstractButton.CENTER);
+        b3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //Start crawler  ...
+                SwingWorker sw2 = new SwingWorker() {
+
+                    protected Object doInBackground()  throws Exception{
+                        try {
+                            String str = textBox.getText();
+                            spider.debugMode(str, true);
+                        } catch (Exception e){}
+                        return null;
+                    }
+                };
+                sw2.execute();
+            };
+        });
+
+
         // Text Box ...
         textBox.setBounds(10, 10 , 500, 30);
-        textBox.setText("Enter URL here...");
+        textBox.setText("https://asoftmurmur.com/");
 
         // URL Panel ....
-        URLPanel.setBounds(10, 100, 500, 800);
+        URLPanel.setBounds(10, 150, 800, 800);
         URLPanel.setAutoscrolls(true);
         URLPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-
+        URLPanel.setForeground(Color.white);
+        URLPanel.setLineWrap(true);
+        URLPanel.setBorder(BorderFactory.createCompoundBorder(URLPanel.getBorder(),BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         URLPanel.setBackground(Color.darkGray);
         //URLPanel.add(tLabel, BorderLayout.CENTER);
 
@@ -74,6 +125,8 @@ public class AppGUI {
         panel.setBackground(Color.CYAN);
         panel.add(textBox);
         panel.add(b1);
+        panel.add(b2);
+        panel.add(b3);
         panel.add(tLabel);
         panel.add(URLPanel);
 
