@@ -107,7 +107,7 @@ public class AppGUI {
 
         // Text Box ...
         textBox.setBounds(10, 10 , 500, 30);
-        textBox.setText("https://asoftmurmur.com/");
+        textBox.setText("http://aniweb.epizy.com/");
 
         // URL Panel ....
         URLPanel.setBounds(10, 150, 800, 800);
